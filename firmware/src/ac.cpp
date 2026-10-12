@@ -190,8 +190,9 @@ void handleCapture() {
     det.model = -1;
     det.acSupported = IRac::isProtocolSupported(type);
     det.atMs = millis() | 1;
-    det.summary = acDesc.length() ? acDesc
-                                  : typeToString(type) + " (" + results.rawlen + " pulses)";
+    det.summary = acDesc.length()
+                      ? acDesc
+                      : typeToString(type) + " (" + String(results.rawlen) + " pulses)";
 
     stdAc::state_t st;
     if (det.acSupported &&

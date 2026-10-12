@@ -1,0 +1,44 @@
+name: Build firmware
+
+on:
+  push:
+    paths: ["firmware/**", ".github/workflows/firmware.yml"]
+  pull_request:
+    paths: ["firmware/**", ".github/workflows/firmware.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: firmware
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ hashFiles('firmware/platformio.ini') }}
+      - name: Install PlatformIO
+        run: pip install platformio esptool
+      - name: Build
+        run: pio run
+      - name: Make single-file factory image (flash at 0x0)
+        run: |
+          B=.pio/build/esp32dev
+          BOOT_APP0=$(find ~/.platformio/packages/framework-arduinoespressif32 -name boot_app0.bin | head -1)
+          esptool.py --chip esp32 merge_bin -o lloyd-ac-factory.bin \
+            --flash_mode dio --flash_size 4MB \
+            0x1000 $B/bootloader.bin 0x8000 $B/partitions.bin \
+            0xe000 "$BOOT_APP0" 0x10000 $B/firmware.bin
+          cp $B/firmware.bin lloyd-ac-update.bin
+          ls -l *.bin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lloyd-ac-firmware
+          path: |
+            firmware/lloyd-ac-factory.bin
+            firmware/lloyd-ac-update.bin

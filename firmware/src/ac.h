@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <IRremoteESP8266.h>
 
+#include <vector>
+
 // Fan levels as shown in the UI. Mapped to stdAc::fanspeed_t when sending.
 enum FanLevel : uint8_t { FAN_AUTO = 0, FAN_LOW = 1, FAN_MED = 2, FAN_HIGH = 3 };
 
